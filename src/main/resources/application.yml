@@ -1,0 +1,45 @@
+server:
+  port: 8080
+spring:
+  redis:
+    host: 192.168.3.129
+    port: 6379
+    database: 3
+    lettuce:
+      shutdown-timeout: 100ms
+      pool:
+        min-idle: 0
+        max-idle: 8
+        max-wait: 2ms
+        max-active: 8
+  session:
+    store-type: redis
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.3.234:3306/fc_dev?characterEncoding=utf8&useSSL=false&useServerPrepStmts=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true&serverTimezone=GMT%2B8
+    username: fc_dev
+    password: fc_dev
+    druid:
+      filters: stat,wall,slf4j
+      maxActive: 36
+      initialSize: 2
+      maxWait: 10000
+      minIdle: 2
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      validationQuery: SELECT 1
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      poolPreparedStatements: true
+      maxOpenPreparedStatements: 20
+      stat-view-servlet:
+        reset-enable: false
+        login-username: admin
+        login-password: Mr123456
+logging:
+  level:
+    root: info
+    com:
+      bigfour:
+        odp: debug
