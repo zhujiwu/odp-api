@@ -20,4 +20,6 @@ public interface JwtAuthenticationToken extends Authentication {
 
     Date getExpiration();
 
+//    void setDetails(Object details);
+
 }

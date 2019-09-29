@@ -28,6 +28,11 @@ public class JwtTokenAuthenticationFilter extends AbstractAuthenticationProcessi
 
     public JwtTokenAuthenticationFilter() {
         super("/**");
+        init();
+    }
+
+    protected void init(){
+        setContinueChainBeforeSuccessfulAuthentication(true);
     }
 
     @Override

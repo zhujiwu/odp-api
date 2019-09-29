@@ -5,6 +5,8 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtHandlerAdapter;
 import io.jsonwebtoken.Jwts;
 
+import java.util.Collections;
+
 /**
  * @author : zhujiwu
  * @date : 2019/9/27.
@@ -28,7 +30,7 @@ public class JwtAuthenticationTokenHandler extends JwtHandlerAdapter<JwtAuthenti
     }
 
     public static JwtAuthenticationToken parseJwtAuthenticationToken(Claims claims) {
-        JwtAuthenticationTokenImpl token = new JwtAuthenticationTokenImpl(claims.getSubject(), null);
+        JwtAuthenticationTokenImpl token = new JwtAuthenticationTokenImpl(claims.getSubject(), Collections.emptyList());
         token.setId(claims.getId());
         token.setUserId(claims.get("userId", String.class));
         token.setExpiration(claims.getExpiration());
