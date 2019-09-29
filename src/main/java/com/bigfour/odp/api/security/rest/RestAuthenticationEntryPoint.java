@@ -20,7 +20,7 @@ import java.io.IOException;
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException e) throws IOException, ServletException {
-        ErrorInfo error = new ErrorInfo("unauthorized", e.getMessage());
+        ErrorInfo error = new ErrorInfo("unauthorized", "用户未登录");
         ResponseJsonUtils.response(error, HttpStatus.UNAUTHORIZED, response);
     }
 }

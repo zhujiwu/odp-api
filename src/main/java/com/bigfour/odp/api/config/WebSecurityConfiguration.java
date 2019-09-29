@@ -1,18 +1,30 @@
 package com.bigfour.odp.api.config;
 
-import com.bigfour.odp.api.security.RedisSecurityContextRepository;
 import com.bigfour.odp.api.security.UserDetailsServiceImpl;
-import com.bigfour.odp.api.security.rest.*;
+import com.bigfour.odp.api.security.jwt.JwtAuthenticationConfigurer;
+import com.bigfour.odp.api.security.jwt.JwtAuthenticationProvider;
+import com.bigfour.odp.api.security.jwt.JwtForwardAuthenticationSuccessHandler;
+import com.bigfour.odp.api.security.jwt.JwtTokenAuthenticationFilter;
+import com.bigfour.odp.api.security.rest.RestAccessDeniedHandler;
+import com.bigfour.odp.api.security.rest.RestAuthenticationEntryPoint;
+import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.ForwardAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.security.Key;
+import java.util.Map;
 
 /**
  * @author : zhujiwu
@@ -21,28 +33,32 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Slf4j
 @Configuration
 @EnableWebSecurity
-public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 
-    @Autowired
-    private RedisSecurityContextRepository securityContextRepository;
+    /*    @Autowired
+        private RedisSecurityContextRepository securityContextRepository;*/
+
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
-
-    public RestLoginConfigurer<HttpSecurity> restLoginConfigurer() {
-        RestLoginConfigurer<HttpSecurity> configurer = new RestLoginConfigurer<>(new UsernamePasswordAuthenticationFilter());
-        configurer.loginProcessingUrl("/login");
-        return configurer;
-    }
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    @Bean
+    public AuthenticationProvider jwtAuthenticationProvider(){
+        return new JwtAuthenticationProvider();
+    }
+
+    @Bean
+    public Key jwtSignKey() {
+        return Keys.hmacShaKeyFor("e8c0a558d0124143b700084eeb78bdb0".getBytes());
+    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-//        http.addFilterBefore(wxCodeTokenAuthenticationFilterBean(), UsernamePasswordAuthenticationFilter.class);
         http
                 //禁用CSRF保护
                 .csrf().disable()
@@ -52,19 +68,18 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
                 //任何访问都必须授权
                 .anyRequest().authenticated()
                 .and()
-//                .formLogin()
-                .apply(restLoginConfigurer())
-                //登陆成功后的处理，因为是API的形式所以不用跳转页面
-                .successHandler(new RestAuthenticationSuccessHandler())
-                //登陆失败后的处理
-                .failureHandler(new RestAuthenticationFailureHandler())
+                .authenticationProvider(jwtAuthenticationProvider())
+                .formLogin()
+                .successHandler(JwtForwardAuthenticationSuccessHandler.builder().forwardUrl("/login/success").key(jwtSignKey()).build())
+                .failureForwardUrl("/login/failure")
+                .and()
+                .apply(new JwtAuthenticationConfigurer<HttpSecurity>().key(jwtSignKey()).failureForwardUrl("/login/failure"))
                 .and().exceptionHandling()
                 //匿名用户访问未授权资源
                 .authenticationEntryPoint(new RestAuthenticationEntryPoint())
                 //认证用户访问未授权资源
-                .accessDeniedHandler(new RestAccessDeniedHandler())
-        ;
-//        http.securityContext().securityContextRepository(securityContextRepository);
+                .accessDeniedHandler(new RestAccessDeniedHandler());
+//        http.securityContext().securityContextRepository(jwtSecurityContextRepositoryBean());
     }
 
     @Override

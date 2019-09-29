@@ -10,10 +10,10 @@ import org.springframework.session.web.http.HttpSessionIdResolver;
  * @date : 2019/9/20.
  */
 @EnableRedisHttpSession(maxInactiveIntervalInSeconds = 1800)
-public class HttpSessionConfigurer {
+public class HttpSessionConfiguration {
 
     /**
-     * sessionId 放在请求头中，名为“X-Auth-Token”
+     * sessionId 放在请求头中，名为“x-auth-token”
      * @return
      */
     @Bean

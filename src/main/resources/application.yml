@@ -37,6 +37,12 @@ spring:
         reset-enable: false
         login-username: admin
         login-password: Mr123456
+jwt:
+  header: Authorization
+  secret: mySecret
+  #token有效期一天
+  expiration: 86400
+  tokenHead: "Bearer "
 logging:
   level:
     root: info

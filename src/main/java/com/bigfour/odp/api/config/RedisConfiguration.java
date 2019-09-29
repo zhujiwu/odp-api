@@ -3,6 +3,7 @@ package com.bigfour.odp.api.config;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.JwtBuilder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
@@ -25,6 +26,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.lang.reflect.Method;
 import java.time.Duration;
+import java.util.Arrays;
 
 /**
  * @author : weixiaohu
@@ -34,7 +36,7 @@ import java.time.Duration;
 @ConditionalOnClass({RedisOperations.class})
 @EnableConfigurationProperties(RedisProperties.class)
 @EnableCaching
-public class RedisConfigurer extends CachingConfigurerSupport {
+public class RedisConfiguration extends CachingConfigurerSupport {
 
 
     @Bean
