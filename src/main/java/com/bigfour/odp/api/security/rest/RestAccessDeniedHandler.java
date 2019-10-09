@@ -4,6 +4,7 @@ import com.bigfour.odp.api.response.ErrorInfo;
 import com.bigfour.odp.api.response.ResponseJsonUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.web.access.AccessDeniedHandler;
 
 import javax.servlet.ServletException;
@@ -18,7 +19,7 @@ import java.io.IOException;
 public class RestAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException e) throws IOException, ServletException {
-        ErrorInfo error = new ErrorInfo("forbidden", "权限不足");
+        ErrorInfo error = new ErrorInfo(OAuth2ErrorCodes.ACCESS_DENIED, "权限不足");
         ResponseJsonUtils.response(error, HttpStatus.FORBIDDEN, response);
     }
 }

@@ -25,6 +25,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (!StringUtils.hasText(username)) {
             throw new UsernameNotFoundException(username + " not found");
         }
-        return new OdpUserDetails(username, passwordEncoder.encode("123456"), Collections.emptyList());
+        OdpUserDetails userDetails = new OdpUserDetails(username, passwordEncoder.encode("123456"), Collections.emptyList());
+        userDetails.setUserId("a001");
+        return userDetails;
     }
 }

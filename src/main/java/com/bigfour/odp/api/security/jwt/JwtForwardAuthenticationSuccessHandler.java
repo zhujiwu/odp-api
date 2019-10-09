@@ -1,13 +1,17 @@
 package com.bigfour.odp.api.security.jwt;
 
+import com.bigfour.odp.api.security.OdpUserDetails;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.ForwardAuthenticationSuccessHandler;
 
@@ -18,9 +22,12 @@ import java.io.IOException;
 import java.security.Key;
 import java.time.Duration;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
+ * 登录成功后响应token
  * @author : zhujiwu
  * @date : 2019/9/27.
  */
@@ -36,43 +43,53 @@ public class JwtForwardAuthenticationSuccessHandler extends ForwardAuthenticatio
     @Builder.Default
     private Duration expiration = JwtConsts.DEFAULT_EXPIRATION;
 
+    private final Converter<UsernamePasswordAuthenticationToken, Claims> bearerTokenConverter = authenticationToken -> {
+        String tokenId = UUID.randomUUID().toString().replace("-", "");
+        OdpUserDetails principal = (OdpUserDetails) authenticationToken.getPrincipal();
+        String userId = principal.getUserId();
+        Date curDate = new Date();
+
+        Claims claims = Jwts.claims();
+        claims.setId(tokenId)
+                .setIssuer(JwtConsts.ISSUER)
+                .setNotBefore(curDate)
+                .setIssuedAt(curDate)
+                .setExpiration(new Date(curDate.getTime() + expiration.toMillis()))
+                .setSubject(authenticationToken.getName());
+        claims.put("userId", userId);
+        List<String> authorities = authenticationToken.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
+        claims.put(JwtConsts.SCOPE_KEY,authorities);
+        return claims;
+    };
+
+    public JwtForwardAuthenticationSuccessHandler(String forwardUrl, Key key, Duration expiration) {
+        super(forwardUrl);
+        this.forwardUrl = forwardUrl;
+        this.key = key;
+        this.expiration = expiration;
+    }
+
     public JwtForwardAuthenticationSuccessHandler(String forwardUrl) {
         super(forwardUrl);
         this.forwardUrl = forwardUrl;
     }
 
-    public JwtForwardAuthenticationSuccessHandler(String forwardUrl, Key key, Duration expiration) {
-        this(forwardUrl);
-        this.key = key;
-        this.expiration = expiration;
-    }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        JwtAuthenticationToken jwtAuthenticationToken;
+        Claims claims;
         if (authentication instanceof UsernamePasswordAuthenticationToken) {
-            UsernamePasswordAuthenticationToken upaToken = (UsernamePasswordAuthenticationToken) authentication;
-            JwtAuthenticationTokenAdapter tokenAdapter = new JwtAuthenticationTokenAdapter(upaToken);
-            tokenAdapter.setId(UUID.randomUUID().toString().replace("-", ""));
-            jwtAuthenticationToken = tokenAdapter;
+            UsernamePasswordAuthenticationToken authenticationToken = (UsernamePasswordAuthenticationToken) authentication;
+            claims = bearerTokenConverter.convert(authenticationToken);
         } else {
             super.onAuthenticationSuccess(request, response, authentication);
             return;
         }
-        Claims claims = JwtAuthenticationTokenHandler.parseClaims(jwtAuthenticationToken);
-        JwtBuilder builder = Jwts.builder();
-        Date curDate = new Date();
-        builder.setClaims(claims)
-                .setIssuer(JwtConsts.ISSUER)
-                .setNotBefore(curDate)
-                .setIssuedAt(curDate)
-                .setExpiration(new Date(curDate.getTime() + expiration.toMillis()))
-                .signWith(key);
 
-        String token = builder.compact();
-        response.addHeader(JwtConsts.TOKEN_HEADER_KEY, JwtConsts.TOKEN_PREFIX + token);
-        SecurityContextHolder.getContext().setAuthentication(jwtAuthenticationToken);
+        String bearerToken = Jwts.builder().setClaims(claims).signWith(key).compact();
+        response.addHeader(JwtConsts.TOKEN_HEADER_KEY, JwtConsts.TOKEN_PREFIX + bearerToken);
         super.onAuthenticationSuccess(request, response, authentication);
     }
+
 
 }

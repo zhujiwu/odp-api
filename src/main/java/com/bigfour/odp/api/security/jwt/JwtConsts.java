@@ -12,6 +12,7 @@ public abstract class JwtConsts {
     public static final String TOKEN_HEADER_KEY = "Authorization";
     public static final String TOKEN_PREFIX = "Bearer ";
     public static final String ISSUER = "odp-api";
+    public static final String SCOPE_KEY = "scp";
 
     /**
      * 默认过期时间

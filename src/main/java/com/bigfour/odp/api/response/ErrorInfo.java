@@ -15,15 +15,15 @@ import java.io.Serializable;
 @Builder
 public class ErrorInfo implements Serializable {
 
-    private String code = "error";
+    private String errorCode = "error";
     private String msg;
 
     public ErrorInfo(String msg) {
         this.msg = msg;
     }
 
-    public ErrorInfo(String code, String msg) {
-        this.code = code;
+    public ErrorInfo(String errorCode, String msg) {
+        this.errorCode = errorCode;
         this.msg = msg;
     }
 }
