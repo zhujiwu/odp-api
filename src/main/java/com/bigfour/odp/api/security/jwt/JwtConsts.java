@@ -13,6 +13,7 @@ public abstract class JwtConsts {
     public static final String TOKEN_PREFIX = "Bearer ";
     public static final String ISSUER = "odp-api";
     public static final String SCOPE_KEY = "scp";
+    public static final String USER_ID_KEY = "userId";
 
     /**
      * 默认过期时间

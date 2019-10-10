@@ -28,8 +28,7 @@ public class PassportController {
             System.out.println(tokenAttributes);
         }
 
-
-        OdpUserDetails userDetails = SecurityUtils.getUserDetails();
+        OdpUserDetails userDetails = null;//SecurityUtils.getUserDetails();
         return userDetails;
     }
 }
